@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"testing"
 )
 
@@ -22,8 +23,8 @@ func TestError(t *testing.T) {
 		t.Error("empty stack trace")
 	}
 
-	if s := err.Error(); s != "test" {
-		t.Errorf("expected %q, got %q", "test", s)
+	if s := err.Error(); strings.Index(s, "test") != 0 {
+		t.Errorf("expected string to start with %q", "test")
 	}
 }
 
@@ -55,18 +56,18 @@ func ExampleWrap() {
 		err = Wrap(err, "Example failed")
 	}
 	fmt.Println(err)
-	// Output: Example failed. write error
+	// Output: Example failed. write error [github.com/alexkappa/errors.Wrap(errors.go:82),github.com/alexkappa/errors.ExampleWrap(errors_test.go:56),testing.runExample(example.go:99),testing.RunExamples(example.go:36),testing.(*M).Run(testing.go:486),main.main(_testmain.go:58)]
 }
 
 func ExampleStack() {
 	err := New("error with stack trace")
 	for _, frame := range err.Stack() {
-		fmt.Printf("%s\n", frame.Func)
+		fmt.Printf("%s(%s:%d)\n", frame.Func, frame.File, 0)
 	}
-	// Output: github.com/alexkappa/errors.New
-	// github.com/alexkappa/errors.ExampleStack
-	// testing.runExample
-	// testing.RunExamples
-	// testing.(*M).Run
-	// main.main
+	// Output: github.com/alexkappa/errors.New(errors.go:0)
+	// github.com/alexkappa/errors.ExampleStack(errors_test.go:0)
+	// testing.runExample(example.go:0)
+	// testing.RunExamples(example.go:0)
+	// testing.(*M).Run(testing.go:0)
+	// main.main(_testmain.go:0)
 }

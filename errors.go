@@ -3,7 +3,9 @@ package errors
 import (
 	"bytes"
 	"fmt"
+	"path/filepath"
 	"runtime"
+	"strconv"
 )
 
 type Error interface {
@@ -42,10 +44,20 @@ func (t *T) Inner() error {
 
 // Error satisfies the standard library error interface.
 func (t *T) Error() string {
+	var buf bytes.Buffer
+	buf.WriteString(t.M)
 	if t.I != nil {
-		return fmt.Sprintf("%s. %s", t.M, t.I)
+		buf.WriteByte('.')
+		buf.WriteByte(' ')
+		buf.WriteString(t.I.Error())
 	}
-	return fmt.Sprintf("%s", t.M)
+	if t.S != nil {
+		buf.WriteByte(' ')
+		buf.WriteByte('[')
+		buf.WriteString(t.S.String())
+		buf.WriteByte(']')
+	}
+	return buf.String()
 }
 
 // New creates a new Error with the supplied message.
@@ -105,7 +117,12 @@ type Frames []Frame
 func (f Frames) String() string {
 	var buf bytes.Buffer
 	for i, frame := range f {
-		buf.WriteString(fmt.Sprintf("%s:%d %s", frame.File, frame.Line, frame.Func))
+		buf.WriteString(frame.Func)
+		buf.WriteByte('(')
+		buf.WriteString(frame.File)
+		buf.WriteByte(':')
+		buf.WriteString(strconv.Itoa(frame.Line))
+		buf.WriteByte(')')
 		if i < len(f)-1 {
 			buf.WriteByte(',')
 		}
@@ -124,7 +141,7 @@ func Stack(skip int) Frames {
 		fn := runtime.FuncForPC(caller)
 		file, line := fn.FileLine(caller)
 		frames[i] = Frame{
-			File: file,
+			File: filepath.Base(file),
 			Line: line,
 			Func: fn.Name(),
 		}
