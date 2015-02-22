@@ -56,7 +56,7 @@ func ExampleWrap() {
 		err = Wrap(err, "Example failed")
 	}
 	fmt.Println(err)
-	// Output: Example failed. write error [github.com/alexkappa/errors.Wrap(errors.go:82),github.com/alexkappa/errors.ExampleWrap(errors_test.go:56),testing.runExample(example.go:99),testing.RunExamples(example.go:36),testing.(*M).Run(testing.go:486),main.main(_testmain.go:58)]
+	// Output: Example failed. write error [github.com/alexkappa/errors.Wrap(errors.go:76),github.com/alexkappa/errors.ExampleWrap(errors_test.go:56),testing.runExample(example.go:99),testing.RunExamples(example.go:36),testing.(*M).Run(testing.go:486),main.main(_testmain.go:58)]
 }
 
 func ExampleStack() {

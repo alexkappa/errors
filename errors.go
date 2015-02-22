@@ -2,7 +2,6 @@ package errors
 
 import (
 	"bytes"
-	"fmt"
 	"path/filepath"
 	"runtime"
 	"strconv"
@@ -65,11 +64,6 @@ func New(message string) Error {
 	return new(message, 3)
 }
 
-// Newf creates a new Error with the supplied formating.
-func Newf(format string, v ...interface{}) Error {
-	return new(fmt.Sprintf(format, v...), 3)
-}
-
 func new(message string, skip int) Error {
 	return &T{
 		M: message,
@@ -80,11 +74,6 @@ func new(message string, skip int) Error {
 // Wrap creates a new Error that wraps err.
 func Wrap(err error, message string) Error {
 	return wrap(err, message, 3)
-}
-
-// Wrapf creates a new Error that wraps err.
-func Wrapf(err error, format string, v ...interface{}) Error {
-	return wrap(err, fmt.Sprintf(format, v...), 3)
 }
 
 func wrap(err error, message string, skip int) Error {
