@@ -39,6 +39,11 @@ func TestJSON(t *testing.T) {
 	}
 }
 
+func ExampleNew() {
+	fmt.Println(New("Example failed."))
+	// Output: Example failed. [github.com/alexkappa/errors.New(errors.go:64),github.com/alexkappa/errors.ExampleNew(errors_test.go:43),testing.runExample(example.go:99),testing.RunExamples(example.go:36),testing.(*M).Run(testing.go:486),main.main(_testmain.go:60)]
+}
+
 type errWriter uint8
 
 func (e errWriter) Write(p []byte) (int, error) {
@@ -56,7 +61,7 @@ func ExampleWrap() {
 		err = Wrap(err, "Example failed")
 	}
 	fmt.Println(err)
-	// Output: Example failed. write error [github.com/alexkappa/errors.Wrap(errors.go:76),github.com/alexkappa/errors.ExampleWrap(errors_test.go:56),testing.runExample(example.go:99),testing.RunExamples(example.go:36),testing.(*M).Run(testing.go:486),main.main(_testmain.go:58)]
+	// Output: Example failed. write error [github.com/alexkappa/errors.Wrap(errors.go:76),github.com/alexkappa/errors.ExampleWrap(errors_test.go:61),testing.runExample(example.go:99),testing.RunExamples(example.go:36),testing.(*M).Run(testing.go:486),main.main(_testmain.go:60)]
 }
 
 func ExampleStack() {

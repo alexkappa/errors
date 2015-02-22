@@ -15,21 +15,16 @@ _, err := w.Write(p)
 if err != nil {
     err = errors.Wrap(err, "Example failed")
 }
-fmt.Println(err) // Output: Example failed. write error
+fmt.Println(err) // Example failed. write error [github.com/alexkappa/errors.Wrap(errors.go:76),github.com/alexkappa/errors.ExampleWrap(errors_test.go:56),testing.runExample(example.go:99),testing.RunExamples(example.go:36),testing.(*M).Run(testing.go:486),main.main(_testmain.go:58)]
 ```
 
-It also provides a stack trace.
+You can also access the stack trace and print it out yourself.
 
 ```Go
 err := errors.New("error with stack trace")
 for _, frame := range err.Stack() {
     fmt.Printf("%s\n", frame.Func)
 }
-// Output:
 // github.com/alexkappa/errors.New
-// github.com/alexkappa/errors.ExampleStack
-// testing.runExample
-// testing.RunExamples
-// testing.(*M).Run
 // main.main
 ```
