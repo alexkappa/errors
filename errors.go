@@ -18,31 +18,31 @@ type Error interface {
 	Error() string
 }
 
-// Type T is the default implementation of the Error interface. Users shouldn't
-// need to use this struct directly.
-type T struct {
+// Type errtype is the default implementation of the Error interface. It is not
+// exported so users can only use it via the New or Wrap functions.
+type errtype struct {
 	M string `json:"message"`
 	I error  `json:"inner,omitempty"`
 	S Frames `json:"stack,omitempty"`
 }
 
 // Message returns the error message of the error.
-func (t *T) Message() string {
+func (t *errtype) Message() string {
 	return t.M
 }
 
 // Inner returns the inner error that this error wraps.
-func (t *T) Stack() Frames {
+func (t *errtype) Stack() Frames {
 	return t.S
 }
 
 // Stack returns the stack trace that led to the error.
-func (t *T) Inner() error {
+func (t *errtype) Inner() error {
 	return t.I
 }
 
 // Error satisfies the standard library error interface.
-func (t *T) Error() string {
+func (t *errtype) Error() string {
 	var buf bytes.Buffer
 	buf.WriteString(t.M)
 	if t.I != nil {
@@ -65,7 +65,7 @@ func New(message string) Error {
 }
 
 func new(message string, skip int) Error {
-	return &T{
+	return &errtype{
 		M: message,
 		S: Stack(skip),
 	}
@@ -77,12 +77,12 @@ func Wrap(err error, message string) Error {
 }
 
 func wrap(err error, message string, skip int) Error {
-	if errT, ok := err.(*T); ok {
+	if errT, ok := err.(*errtype); ok {
 		errT.S = nil // drop the stack trace of the inner error.
 	} else {
-		err = &T{M: err.Error()}
+		err = &errtype{M: err.Error()}
 	}
-	return &T{
+	return &errtype{
 		M: message,
 		I: err,
 		S: Stack(skip),
