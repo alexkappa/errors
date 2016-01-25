@@ -2,6 +2,7 @@ package errors
 
 import (
 	"bytes"
+	"encoding/json"
 	"path/filepath"
 	"runtime"
 	"strconv"
@@ -17,6 +18,11 @@ type Error interface {
 	// Error satisfies the standard library error interface.
 	Error() string
 }
+
+var (
+	PrintTrace   = true
+	MarshalTrace = false
+)
 
 // Type errtype is the default implementation of the Error interface. It is not
 // exported so users can only use it via the New or Wrap functions.
@@ -50,7 +56,7 @@ func (t *errtype) Error() string {
 		buf.WriteByte(' ')
 		buf.WriteString(t.I.Error())
 	}
-	if t.S != nil {
+	if t.S != nil && PrintTrace {
 		buf.WriteByte(' ')
 		buf.WriteByte('[')
 		buf.WriteString(t.S.String())
@@ -117,6 +123,26 @@ func (f Frames) String() string {
 		}
 	}
 	return buf.String()
+}
+
+func (f Frames) MarshalJSON() ([]byte, error) {
+	if !MarshalTrace {
+		return []byte("[]"), nil
+	}
+	b := bytes.NewBuffer(nil)
+	b.WriteByte('[')
+	e := json.NewEncoder(b)
+	for i, frame := range f {
+		err := e.Encode(frame)
+		if err != nil {
+			return b.Bytes(), err
+		}
+		if i+1 < len(f) {
+			b.WriteByte(',')
+		}
+	}
+	b.WriteByte(']')
+	return b.Bytes(), nil
 }
 
 // Stack returns the stack trace of the function call, while skipping the first

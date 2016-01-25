@@ -3,7 +3,6 @@ package errors
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"strings"
 	"testing"
 )
@@ -28,7 +27,7 @@ func TestError(t *testing.T) {
 	}
 }
 
-func TestJSON(t *testing.T) {
+func TestMarshal(t *testing.T) {
 	var buf bytes.Buffer
 	err := json.NewEncoder(&buf).Encode(New("test"))
 	if err != nil {
@@ -37,42 +36,22 @@ func TestJSON(t *testing.T) {
 	if !bytes.Contains(buf.Bytes(), []byte(`"message":"test"`)) {
 		t.Errorf("marshaled error doesn't contain expected segment")
 	}
+	if !bytes.Contains(buf.Bytes(), []byte(`"stack":[]`)) {
+		t.Errorf("marshaled error doesn't contain an empty stack trace")
+	}
 }
 
-func ExampleNew() {
-	fmt.Println(New("Example failed."))
-	// Output: Example failed. [github.com/alexkappa/errors.New(errors.go:64),github.com/alexkappa/errors.ExampleNew(errors_test.go:43),testing.runExample(example.go:99),testing.RunExamples(example.go:36),testing.(*M).Run(testing.go:486),main.main(_testmain.go:60)]
-}
-
-type errWriter uint8
-
-func (e errWriter) Write(p []byte) (int, error) {
-	return 0, fmt.Errorf("write error")
-}
-
-var (
-	w errWriter
-	p []byte
-)
-
-func ExampleWrap() {
-	_, err := w.Write(p)
+func TestMarshalTrace(t *testing.T) {
+	MarshalTrace = true
+	defer func() {
+		MarshalTrace = false
+	}()
+	var buf bytes.Buffer
+	err := json.NewEncoder(&buf).Encode(New("test"))
 	if err != nil {
-		err = Wrap(err, "Example failed")
+		t.Errorf("json error: %s", err)
 	}
-	fmt.Println(err)
-	// Output: Example failed. write error [github.com/alexkappa/errors.Wrap(errors.go:76),github.com/alexkappa/errors.ExampleWrap(errors_test.go:61),testing.runExample(example.go:99),testing.RunExamples(example.go:36),testing.(*M).Run(testing.go:486),main.main(_testmain.go:60)]
-}
-
-func ExampleStack() {
-	err := New("error with stack trace")
-	for _, frame := range err.Stack() {
-		fmt.Printf("%s(%s:%d)\n", frame.Func, frame.File, 0)
+	if !bytes.Contains(buf.Bytes(), []byte(`"stack":[{"file":"errors.go"`)) {
+		t.Errorf("marshaled error should contain a stack trace")
 	}
-	// Output: github.com/alexkappa/errors.New(errors.go:0)
-	// github.com/alexkappa/errors.ExampleStack(errors_test.go:0)
-	// testing.runExample(example.go:0)
-	// testing.RunExamples(example.go:0)
-	// testing.(*M).Run(testing.go:0)
-	// main.main(_testmain.go:0)
 }
