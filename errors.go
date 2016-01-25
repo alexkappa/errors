@@ -20,7 +20,16 @@ type Error interface {
 }
 
 var (
-	PrintTrace   = true
+	// This setting enables a stack trace when an Error is being printed.
+	//
+	// 	err := errors.New("example")
+	// 	err.Error() // "example" [<function>(<file>:<line>), ...]
+	PrintTrace = true
+	// This setting enables a stack trace to be printed when an Error is being
+	// marshaled.
+	//
+	// 	err := errors.New("example")
+	// 	b, _ := json.Marshal(err) // {"message":"example","stack":[{"file":"<file>","line":<line>,"func": "<function>"},...]}
 	MarshalTrace = false
 )
 

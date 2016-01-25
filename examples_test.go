@@ -8,7 +8,7 @@ import (
 
 func ExampleNew() {
 	fmt.Println(errors.New("Example failed."))
-	// Output: Example failed. [github.com/alexkappa/errors.New(errors.go:70),github.com/alexkappa/errors_test.ExampleNew(examples_test.go:10),testing.runExample(example.go:99),testing.RunExamples(example.go:36),testing.(*M).Run(testing.go:495),main.main(_testmain.go:66)]
+	// Output: Example failed. [github.com/alexkappa/errors.New(errors.go:79),github.com/alexkappa/errors_test.ExampleNew(examples_test.go:10),testing.runExample(example.go:99),testing.RunExamples(example.go:36),testing.(*M).Run(testing.go:495),main.main(_testmain.go:66)]
 }
 
 type errWriter uint8
@@ -28,7 +28,7 @@ func ExampleWrap() {
 		err = errors.Wrap(err, "Example failed")
 	}
 	fmt.Println(err)
-	// Output: Example failed. write error [github.com/alexkappa/errors.Wrap(errors.go:82),github.com/alexkappa/errors_test.ExampleWrap(examples_test.go:28),testing.runExample(example.go:99),testing.RunExamples(example.go:36),testing.(*M).Run(testing.go:495),main.main(_testmain.go:66)]
+	// Output: Example failed. write error [github.com/alexkappa/errors.Wrap(errors.go:91),github.com/alexkappa/errors_test.ExampleWrap(examples_test.go:28),testing.runExample(example.go:99),testing.RunExamples(example.go:36),testing.(*M).Run(testing.go:495),main.main(_testmain.go:66)]
 }
 
 func ExampleStack() {
