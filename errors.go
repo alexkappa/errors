@@ -3,11 +3,14 @@ package errors
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"path/filepath"
 	"runtime"
 	"strconv"
 )
 
+// Error is an interface that extends the builtin error interface with inner
+// errors and stack traces.
 type Error interface {
 	// Message returns the error message of the error.
 	Message() string
@@ -15,16 +18,11 @@ type Error interface {
 	Inner() error
 	// Stack returns the stack trace that led to the error.
 	Stack() Frames
-	// Error satisfies the standard library error interface.
-	Error() string
+
+	error
 }
 
 var (
-	// This setting enables a stack trace when an Error is being printed.
-	//
-	// 	err := errors.New("example")
-	// 	err.Error() // "example" [<function>(<file>:<line>), ...]
-	PrintTrace = true
 	// This setting enables a stack trace to be printed when an Error is being
 	// marshaled.
 	//
@@ -36,42 +34,79 @@ var (
 // Type errtype is the default implementation of the Error interface. It is not
 // exported so users can only use it via the New or Wrap functions.
 type errtype struct {
-	M string `json:"message"`
-	I error  `json:"inner,omitempty"`
-	S Frames `json:"stack,omitempty"`
+	message string
+	inner   error
+	stack   Frames
 }
 
 // Message returns the error message of the error.
 func (t *errtype) Message() string {
-	return t.M
+	return t.message
 }
 
 // Inner returns the inner error that this error wraps.
 func (t *errtype) Stack() Frames {
-	return t.S
+	return t.stack
 }
 
 // Stack returns the stack trace that led to the error.
 func (t *errtype) Inner() error {
-	return t.I
+	return t.inner
 }
 
-// Error satisfies the standard library error interface.
+// Error implements the standard library error interface.
 func (t *errtype) Error() string {
+	if t.inner != nil {
+		return t.message + ". " + t.inner.Error()
+	}
+	return t.message
+}
+
+// Format implements the standard library fmt.Formatter interface. Credit to
+// Dave Cheney's github.com/pkg/errors.
+func (t *errtype) Format(s fmt.State, verb rune) {
+	switch verb {
+	case 'v':
+		fmt.Fprintf(s, "%s", t.message)
+		if t.inner != nil {
+			fmt.Fprintf(s, ". %s", t.inner.Error())
+		}
+		if s.Flag('+') {
+			fmt.Fprint(s, "\n")
+			fmt.Fprintf(s, "%s", t.stack.String())
+		}
+	case 's':
+		fmt.Fprintf(s, "%s", t.message)
+		if t.inner != nil {
+			fmt.Fprintf(s, ". %s", t.inner.Error())
+		}
+	case 'q':
+		fmt.Fprintf(s, "%q", t.message)
+	}
+}
+
+func (t *errtype) MarshalJSON() ([]byte, error) {
+	b, err := t.stack.MarshalJSON()
+	if err != nil {
+		return b, err
+	}
+
 	var buf bytes.Buffer
-	buf.WriteString(t.M)
-	if t.I != nil {
-		buf.WriteByte('.')
-		buf.WriteByte(' ')
-		buf.WriteString(t.I.Error())
+	fmt.Fprint(&buf, "{")
+	fmt.Fprintf(&buf, `"message":%q`, t.message)
+	if t.inner != nil {
+		fmt.Fprintf(&buf, `,"inner":%q`, t.inner)
 	}
-	if t.S != nil && PrintTrace {
-		buf.WriteByte(' ')
-		buf.WriteByte('[')
-		buf.WriteString(t.S.String())
-		buf.WriteByte(']')
+	if t.stack != nil {
+		fmt.Fprintf(&buf, `,"stack":%s`, b)
 	}
-	return buf.String()
+	fmt.Fprint(&buf, "}")
+
+	return buf.Bytes(), nil
+}
+
+func sprintf(format string, args ...interface{}) string {
+	return fmt.Sprintf(format, args...)
 }
 
 // New creates a new Error with the supplied message.
@@ -79,10 +114,16 @@ func New(message string) Error {
 	return new(message, 3)
 }
 
+// Errorf creates a new Error with the supplied message and arguments formatted
+// in the manner of fmt.Printf.
+func Errorf(message string, args ...interface{}) Error {
+	return new(sprintf(message, args...), 3)
+}
+
 func new(message string, skip int) Error {
 	return &errtype{
-		M: message,
-		S: Stack(skip),
+		message: message,
+		stack:   Stack(skip),
 	}
 }
 
@@ -91,16 +132,22 @@ func Wrap(err error, message string) Error {
 	return wrap(err, message, 3)
 }
 
+// Wrapf creates a new Error that wraps err formatted in the manner of
+// fmt.Printf.
+func Wrapf(err error, message string, args ...interface{}) Error {
+	return wrap(err, sprintf(message, args...), 3)
+}
+
 func wrap(err error, message string, skip int) Error {
 	if errT, ok := err.(*errtype); ok {
-		errT.S = nil // drop the stack trace of the inner error.
+		errT.stack = nil // drop the stack trace of the inner error.
 	} else {
-		err = &errtype{M: err.Error()}
+		err = &errtype{message: err.Error()}
 	}
 	return &errtype{
-		M: message,
-		I: err,
-		S: Stack(skip),
+		message: message,
+		inner:   err,
+		stack:   Stack(skip),
 	}
 }
 
@@ -121,6 +168,7 @@ type Frames []Frame
 func (f Frames) String() string {
 	var buf bytes.Buffer
 	for i, frame := range f {
+		buf.WriteByte('\t')
 		buf.WriteString(frame.Func)
 		buf.WriteByte('(')
 		buf.WriteString(frame.File)
@@ -128,7 +176,7 @@ func (f Frames) String() string {
 		buf.WriteString(strconv.Itoa(frame.Line))
 		buf.WriteByte(')')
 		if i < len(f)-1 {
-			buf.WriteByte(',')
+			buf.WriteByte('\n')
 		}
 	}
 	return buf.String()

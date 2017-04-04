@@ -3,6 +3,7 @@ package errors
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"strings"
 	"testing"
 )
@@ -24,6 +25,40 @@ func TestError(t *testing.T) {
 
 	if s := err.Error(); strings.Index(s, "test") != 0 {
 		t.Errorf("expected string to start with %q", "test")
+	}
+}
+
+func TestNew(t *testing.T) {
+	for _, message := range []string{
+		"foo",
+		"bar",
+		"baz",
+	} {
+		if New(message).Error() != message {
+			t.Errorf("expected error to be equal to %q", message)
+		}
+	}
+}
+
+func TestErrorf(t *testing.T) {
+	for message, args := range map[string][]interface{}{
+		"foo %s":       {"f"},
+		"bar %s %s %s": {"b", "a", "r"},
+		"baz %s %s":    {"b", "z"},
+	} {
+		expected := fmt.Sprintf(message, args...)
+
+		err := Errorf(message, args...)
+		if err.Error() != expected {
+			t.Errorf("unexpected error output %s", err.Error())
+		}
+
+		expected = fmt.Sprintf("%s. x", expected)
+
+		err = Wrapf(New("x"), message, args...)
+		if err.Error() != expected {
+			t.Error("unexpected error output %s", err.Error())
+		}
 	}
 }
 
