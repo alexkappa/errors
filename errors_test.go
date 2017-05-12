@@ -8,6 +8,35 @@ import (
 	"testing"
 )
 
+func TestBatchError(t *testing.T) {
+	batch := NewBatch()
+
+	errors := []Error{ New("test1"),  New("test2")}
+
+	batch.Append(New("test1"))
+	batch.Append(New("test2"))
+
+
+	for i, r := range batch.Errors() {
+		if errors[i].Error() != r.Error(){
+			t.Errorf("expected error %q to be equal", "test")
+		}
+	}
+
+	if batch.IsEmpty() {
+		t.Error("expected batch to not be empty")
+	}
+
+	if _, ok := batch.(error); !ok {
+		t.Error("expected batch to be the generic error")
+	}
+
+	s := batch.Error()
+	if strings.Index(s, "test1;test2") != 0 {
+		t.Errorf("expected string to start with %q", "test1;test2")
+	}
+}
+
 func TestError(t *testing.T) {
 	err := New("test")
 

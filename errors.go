@@ -9,6 +9,19 @@ import (
 	"strconv"
 )
 
+type BatchError interface {
+	error
+	Errors() []error
+	IsEmpty() bool
+	Append(error)
+}
+
+// Type batcherrtype is the default implementation of the Error interface. It is not
+// exported so users can only use it via the New or Wrap functions.
+type batcherrtype struct {
+	errors	[]error
+}
+
 // Error is an interface that extends the builtin error interface with inner
 // errors and stack traces.
 type Error interface {
@@ -107,6 +120,40 @@ func (t *errtype) MarshalJSON() ([]byte, error) {
 
 func sprintf(format string, args ...interface{}) string {
 	return fmt.Sprintf(format, args...)
+}
+
+// NewBatch creates a new BatchError.
+func NewBatch() BatchError {
+	return &batcherrtype{}
+}
+
+//Append appends the error
+func (b *batcherrtype) Append (err error) {
+	b.errors = append(b.errors, err)
+}
+
+//Errors returns the errors
+func (b *batcherrtype) Errors() []error {
+	return b.errors
+}
+
+//IsEmpty returns if there is any error
+func (b *batcherrtype) IsEmpty() bool {
+	return len(b.errors) == 0
+}
+
+// Error implements the standard library error interface.
+func (b *batcherrtype) Error() string {
+	if b.IsEmpty(){
+		return ""
+	}
+
+	message := ""
+	for _, r := range b.Errors() {
+		message += r.Error() + ";"
+	}
+
+	return message
 }
 
 // New creates a new Error with the supplied message.
