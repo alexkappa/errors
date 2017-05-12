@@ -11,13 +11,13 @@ import (
 func TestBatchError(t *testing.T) {
 	batch := NewBatch()
 
-	errors := []Error{ New("test1"),  New("test2")}
+	errors := []Error{New("test1"), New("test2")}
 
 	batch.Append(New("test1"))
 	batch.Append(New("test2"))
-	
+
 	for i, r := range batch.Errors() {
-		if errors[i].Error() != r.Error(){
+		if errors[i].Error() != r.Error() {
 			t.Errorf("expected error %q to be equal", "test")
 		}
 	}
