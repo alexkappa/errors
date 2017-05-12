@@ -16,8 +16,8 @@ type BatchError interface {
 	Append(error)
 }
 
-// Type batcherrtype is the default implementation of the Error interface. It is not
-// exported so users can only use it via the New or Wrap functions.
+// Type batcherrtype is the default implementation of the BatchError interface. It is not
+// exported so users can only use it via the NewBatch function.
 type batcherrtype struct {
 	errors	[]error
 }
