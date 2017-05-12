@@ -9,6 +9,8 @@ import (
 	"strconv"
 )
 
+// BatchError is an interface that extends the builtin error interface with an
+// array of errors.
 type BatchError interface {
 	error
 	Errors() []error
