@@ -125,8 +125,10 @@ func sprintf(format string, args ...interface{}) string {
 }
 
 // NewBatch creates a new BatchError.
-func NewBatch() BatchError {
-	return &batcherrtype{}
+func NewBatch(errs []error) BatchError {
+	return &batcherrtype{
+		errors: errs,
+	}
 }
 
 //Append appends the error
@@ -146,21 +148,26 @@ func (b *batcherrtype) IsEmpty() bool {
 
 // Error implements the standard library error interface.
 func (b *batcherrtype) Error() string {
-	var message string
+	var msg string
 
-	if b.IsEmpty() {
-		return message
+	size := len(b.Errors())
+	if size > 0 {
+		msg = errorList(b.Errors())
 	}
-	m := b.Errors()[0].Error()
 
-	if len(b.errors) > 1 {
-		b.errors = b.errors[1:]
-		message = m + ";" + b.Error()
+	return msg
+}
+
+func errorList(e []error) string {
+	var msg string
+
+	if size := len(e); size > 1 {
+		msg = e[0].Error() + ";" + errorList(e[1:])
 	} else {
-		message = m
+		msg = e[0].Error()
 	}
 
-	return message
+	return msg
 }
 
 // New creates a new Error with the supplied message.

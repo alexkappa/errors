@@ -9,12 +9,9 @@ import (
 )
 
 func TestBatchError(t *testing.T) {
-	batch := NewBatch()
+	batch := NewBatch([]error{New("test1"), New("test2")})
 
 	errors := []Error{New("test1"), New("test2")}
-
-	batch.Append(New("test1"))
-	batch.Append(New("test2"))
 
 	for i, r := range batch.Errors() {
 		if errors[i].Error() != r.Error() {
@@ -30,9 +27,11 @@ func TestBatchError(t *testing.T) {
 		t.Error("expected batch to be the generic error")
 	}
 
+	e := `test1;test2`
 	s := batch.Error()
-	if strings.Compare(s, "test1;test2") != 0 {
-		t.Errorf("expected string to start with %q, got %s", "test1;test2", s)
+
+	if strings.Compare(s, e) != 0 {
+		t.Errorf("expected string to be %q, got %s", e, s)
 	}
 }
 
