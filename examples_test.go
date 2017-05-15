@@ -19,7 +19,7 @@ func ExamplePrintfs() {
 func ExamplePrintfvplus() {
 	fmt.Printf("%+v", errors.New("Example failed."))
 	// Output: Example failed.
-	// 	github.com/alexkappa/errors.New(errors.go:163)
+	// 	github.com/alexkappa/errors.New(errors.go:168)
 	// 	github.com/alexkappa/errors_test.ExamplePrintfvplus(examples_test.go:20)
 	// 	testing.runExample(example.go:115)
 	// 	testing.RunExamples(example.go:38)

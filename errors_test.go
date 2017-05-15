@@ -31,8 +31,8 @@ func TestBatchError(t *testing.T) {
 	}
 
 	s := batch.Error()
-	if strings.Index(s, "test1;test2") != 0 {
-		t.Errorf("expected string to start with %q", "test1;test2")
+	if strings.Compare(s, "test1;test2") != 0 {
+		t.Errorf("expected string to start with %q, got %s", "test1;test2", s)
 	}
 }
 
