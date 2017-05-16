@@ -14,12 +14,10 @@ import (
 type BatchError interface {
 	error
 	Errors() []error
-	IsEmpty() bool
-	Append(error)
 }
 
-// Type batcherrtype is the default implementation of the BatchError interface. It is not
-// exported so users can only use it via the NewBatch function.
+// Type batcherrtype is the default implementation of the BatchError interface.
+// It is not exported so users can only use it via the NewBatch function.
 type batcherrtype struct {
 	errors []error
 }
@@ -131,19 +129,9 @@ func NewBatch(errs []error) BatchError {
 	}
 }
 
-//Append appends the error
-func (b *batcherrtype) Append(err error) {
-	b.errors = append(b.errors, err)
-}
-
 //Errors returns the errors
 func (b *batcherrtype) Errors() []error {
 	return b.errors
-}
-
-//IsEmpty returns if there is any error
-func (b *batcherrtype) IsEmpty() bool {
-	return len(b.errors) == 0
 }
 
 // Error implements the standard library error interface.
@@ -162,7 +150,7 @@ func errorList(e []error) string {
 	var msg string
 
 	if size := len(e); size > 1 {
-		msg = e[0].Error() + ";" + errorList(e[1:])
+		msg = e[0].Error() + "\n" + errorList(e[1:])
 	} else {
 		msg = e[0].Error()
 	}

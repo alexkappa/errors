@@ -19,18 +19,15 @@ func TestBatchError(t *testing.T) {
 		}
 	}
 
-	if batch.IsEmpty() {
-		t.Error("expected batch to not be empty")
-	}
-
 	if _, ok := batch.(error); !ok {
 		t.Error("expected batch to be the generic error")
 	}
 
-	e := `test1;test2`
+	e := "test1" + "\n" + "test2"
+
 	s := batch.Error()
 
-	if strings.Compare(s, e) != 0 {
+	if s != e {
 		t.Errorf("expected string to be %q, got %s", e, s)
 	}
 }
