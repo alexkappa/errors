@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-func TestBatchError(t *testing.T) {
+func TestBatchNew(t *testing.T) {
 	batch := NewBatch([]error{New("test1"), New("test2")})
 
 	errors := []Error{New("test1"), New("test2")}
@@ -32,7 +32,7 @@ func TestBatchError(t *testing.T) {
 	}
 }
 
-func TestErrorBatch(t *testing.T) {
+func TestBatchError(t *testing.T) {
 	for message, args := range map[string][]interface{}{
 		"foo %s":       {"f"},
 		"bar %s %s %s": {"b", "a", "r"},
