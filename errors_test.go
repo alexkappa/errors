@@ -4,9 +4,48 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"strings"
 	"testing"
 )
+
+func TestBatch(t *testing.T) {
+	for batch, expected := range map[BatchError]string{
+		NewBatch(New("e1"), New("e2")):                   "multiple errors occured: e1\ne2",
+		NewBatch(io.ErrUnexpectedEOF):                    "multiple errors occured: unexpected EOF",
+		NewBatch(Wrapf(New("e1"), "m1 %s %s", "b", "z")): "multiple errors occured: m1 b z. e1",
+		NewBatch(io.ErrUnexpectedEOF, nil):               "multiple errors occured: unexpected EOF",
+		NewBatch():                                       "multiple errors occured: ",
+		NewBatch(nil):                                    "multiple errors occured: ",
+		NewBatch([]error{nil}...):                        "multiple errors occured: ",
+	} {
+		if _, ok := batch.(error); !ok {
+			t.Error("expected batch to be the generic error")
+		}
+
+		if batch.Error() != expected {
+			t.Errorf("expected string to be %q, got %s", expected, batch.Error())
+		}
+
+		for _, b := range batch.Errors() {
+			if s := b.Stack(); s == nil {
+				t.Error("empty stack trace")
+			}
+		}
+
+		if fmt.Sprintf("%s\n", batch) != fmt.Sprintf("%s\n", expected) {
+			t.Errorf("expected string to be %q, got %s", fmt.Sprintf("%s\n", expected), fmt.Sprintf("%s\n", batch))
+		}
+
+		if fmt.Sprintf("%+s\n", batch) != fmt.Sprintf("%+s\n", expected) {
+			t.Errorf("expected string to be %q, got %s", fmt.Sprintf("%+s\n", expected), fmt.Sprintf("%+s\n", batch))
+		}
+
+		if fmt.Sprintf("%v", batch) != fmt.Sprintf("%v", expected) {
+			t.Errorf("expected string to be %q, got %s", fmt.Sprintf("%v", expected), fmt.Sprintf("%v", batch))
+		}
+	}
+}
 
 func TestError(t *testing.T) {
 	err := New("test")
