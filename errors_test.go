@@ -32,6 +32,26 @@ func TestBatchError(t *testing.T) {
 	}
 }
 
+func TestErrorBatch(t *testing.T) {
+	for message, args := range map[string][]interface{}{
+		"foo %s":       {"f"},
+		"bar %s %s %s": {"b", "a", "r"},
+		"baz %s %s":    {"b", "z"},
+	} {
+		expected := fmt.Sprintf(message, args...)
+
+		expected = fmt.Sprintf("%s. x1", expected) + "\n" + fmt.Sprintf("%s. x2", expected)
+
+		err1 := Wrapf(New("x1"), message, args...)
+		err2 := Wrapf(New("x2"), message, args...)
+		batch := NewBatch([]error{err1, err2})
+
+		if batch.Error() != expected {
+			t.Errorf("unexpected error output got: \n%s \n want: \n%s", batch.Error(), expected)
+		}
+	}
+}
+
 func TestError(t *testing.T) {
 	err := New("test")
 

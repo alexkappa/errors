@@ -140,22 +140,18 @@ func (b *batcherrtype) Error() string {
 
 	size := len(b.Errors())
 	if size > 0 {
-		msg = errorList(b.Errors())
+		msg = flatten(b.Errors())
 	}
 
 	return msg
 }
 
-func errorList(e []error) string {
-	var msg string
-
+func flatten(e []error) string {
 	if size := len(e); size > 1 {
-		msg = e[0].Error() + "\n" + errorList(e[1:])
-	} else {
-		msg = e[0].Error()
+		return e[0].Error() + "\n" + flatten(e[1:])
 	}
 
-	return msg
+	return e[0].Error()
 }
 
 // New creates a new Error with the supplied message.
