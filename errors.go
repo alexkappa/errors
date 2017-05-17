@@ -10,16 +10,16 @@ import (
 )
 
 // BatchError is an interface that extends the builtin error interface with an
-// array of errors.
+// array of Error.
 type BatchError interface {
 	error
-	Errors() []error
+	Errors() []Error
 }
 
 // Type batcherrtype is the default implementation of the BatchError interface.
 // It is not exported so users can only use it via the NewBatch function.
 type batcherrtype struct {
-	errors []error
+	errors []Error
 }
 
 // Error is an interface that extends the builtin error interface with inner
@@ -70,7 +70,10 @@ func (t *errtype) Inner() error {
 // Error implements the standard library error interface.
 func (t *errtype) Error() string {
 	if t.inner != nil {
-		return t.message + ". " + t.inner.Error()
+		if t.message != "" {
+			return t.message + ". " + t.inner.Error()
+		}
+		return t.inner.Error()
 	}
 	return t.message
 }
@@ -123,35 +126,37 @@ func sprintf(format string, args ...interface{}) string {
 }
 
 // NewBatch creates a new BatchError.
-func NewBatch(errs []error) BatchError {
+func NewBatch(errs ...error) BatchError {
+	var s []Error
+	for _, err := range errs {
+		if err != nil {
+			s = append(s, Wrap(err, ""))
+		}
+	}
 	return &batcherrtype{
-		errors: errs,
+		errors: s,
 	}
 }
 
 //Errors returns the errors
-func (b *batcherrtype) Errors() []error {
+func (b *batcherrtype) Errors() []Error {
 	return b.errors
 }
 
 // Error implements the standard library error interface.
 func (b *batcherrtype) Error() string {
-	var msg string
-
-	size := len(b.Errors())
-	if size > 0 {
-		msg = flatten(b.Errors())
-	}
-
-	return msg
+	return "multiple errors occured: " + flatten(b.Errors())
 }
 
-func flatten(e []error) string {
-	if size := len(e); size > 1 {
+func flatten(e []Error) string {
+	switch len(e) {
+	case 0:
+		return ""
+	case 1:
+		return e[0].Error()
+	default:
 		return e[0].Error() + "\n" + flatten(e[1:])
 	}
-
-	return e[0].Error()
 }
 
 // New creates a new Error with the supplied message.
