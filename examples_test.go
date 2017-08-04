@@ -19,12 +19,12 @@ func ExamplePrintfs() {
 func ExamplePrintfvplus() {
 	fmt.Printf("%+v", errors.New("Example failed."))
 	// Output: Example failed.
-	// 	github.com/alexkappa/errors.New(errors.go:114)
+	// 	github.com/alexkappa/errors.New(errors.go:120)
 	// 	github.com/alexkappa/errors_test.ExamplePrintfvplus(examples_test.go:20)
 	// 	testing.runExample(example.go:123)
 	// 	testing.runExamples(example.go:46)
 	// 	testing.(*M).Run(testing.go:823)
-	// 	main.main(_testmain.go:62)
+	// 	main.main(_testmain.go:108)
 }
 
 type errWriter uint8
